@@ -24,23 +24,22 @@ def main():
     n_hidden_1 = 50
     n_hidden_2 = 50
     batch_size = 500
-    training_steps = 1000
+    training_steps = 200000
     display_step = 1000
     learning_rate = 0.01
 
     weights = {
-        'h1': tf.Variable(tf.random_normal([input_vector_size, n_hidden_1])),
-        'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
-        'out': tf.Variable(tf.random_normal([n_hidden_2, output_vector_size]))
+        'h1': tf.Variable(tf.random_normal([input_vector_size, n_hidden_1]), name='h1'),
+        'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2]), name='h2'),
+        'out': tf.Variable(tf.random_normal([n_hidden_2, output_vector_size]), name='out')
     }
     biases = {
-        'b1': tf.Variable(tf.random_normal([n_hidden_1])),
-        'b2': tf.Variable(tf.random_normal([n_hidden_2])),
-        'out': tf.Variable(tf.random_normal([output_vector_size]))
+        'b1': tf.Variable(tf.random_normal([n_hidden_1]), name='b1'),
+        'b2': tf.Variable(tf.random_normal([n_hidden_2]), name='b2'),
+        'out': tf.Variable(tf.random_normal([output_vector_size]), name='out')
     }
 
     x = tf.placeholder(tf.float32, [None, input_vector_size], name='input')
-    print("h1", weights['h1'])
 
     y = neural_net(x, weights, biases)
     y_ = tf.placeholder(tf.float32, [None, output_vector_size], name='actual_output')
@@ -67,11 +66,11 @@ def main():
     print("Optimization Finished!")
     cost = sess.run(mse, feed_dict={x: test_set['observations'], y_: test_set['actions']})
 
-    print(sess.run(y, feed_dict={x: test_set['observations'][0:1]}))
-    print("h1", sess.run(weights['h1']))
+ #   print(sess.run(y, feed_dict={x: test_set['observations'][0:1]}))
+ #   print("h1", sess.run(weights['h1']))
     print("cost=", "{:.9f}".format(cost))
 
-    saver.save(sess, 'hopper_data.tns')
+    saver.save(sess, 'saved_model_data/hopper/hopper_try2')
 
 def neural_net(x, weights, biases):
     # Hidden fully connected layer
@@ -82,6 +81,7 @@ def neural_net(x, weights, biases):
     layer_2 = tf.nn.elu(layer_2)
     # Output fully connected layer with a neuron for each class
     out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
+    out_layer = tf.identity(out_layer, name="neural_net")
     return out_layer
 
 
