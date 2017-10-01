@@ -24,9 +24,9 @@ def main():
     n_hidden_1 = 50
     n_hidden_2 = 50
     batch_size = 500
-    training_steps = 100000
+    training_steps = 1000
     display_step = 1000
-    learning_rate = 0.1
+    learning_rate = 0.01
 
     weights = {
         'h1': tf.Variable(tf.random_normal([input_vector_size, n_hidden_1])),
@@ -40,8 +40,9 @@ def main():
     }
 
     x = tf.placeholder(tf.float32, [None, input_vector_size], name='input')
+    print("h1", weights['h1'])
 
-    y = neural_net(x)
+    y = neural_net(x, weights, biases)
     y_ = tf.placeholder(tf.float32, [None, output_vector_size], name='actual_output')
 
     mse = tf.reduce_sum(tf.pow(y-y_, 2))/(2*training_set_size)
@@ -51,6 +52,8 @@ def main():
 
     sess = tf.InteractiveSession()
     tf.global_variables_initializer().run()
+
+    saver = tf.train.Saver()
 
     for step in range(training_steps):
         indices = np.random.choice(len(training_set['observations']), batch_size, replace=False)
@@ -63,14 +66,20 @@ def main():
 
     print("Optimization Finished!")
     cost = sess.run(mse, feed_dict={x: test_set['observations'], y_: test_set['actions']})
-    print("cost=", "{:.9f}".format(cost), \
-          "W=", sess.run(W), "b=", sess.run(b))
 
-def neural_net(x):
+    print(sess.run(y, feed_dict={x: test_set['observations'][0:1]}))
+    print("h1", sess.run(weights['h1']))
+    print("cost=", "{:.9f}".format(cost))
+
+    saver.save(sess, 'hopper_data.tns')
+
+def neural_net(x, weights, biases):
     # Hidden fully connected layer
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
+    layer_1 = tf.nn.elu(layer_1)
     # Hidden fully connected layer
     layer_2 = tf.add(tf.matmul(layer_1, weights['h2']), biases['b2'])
+    layer_2 = tf.nn.elu(layer_2)
     # Output fully connected layer with a neuron for each class
     out_layer = tf.matmul(layer_2, weights['out']) + biases['out']
     return out_layer
