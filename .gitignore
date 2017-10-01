@@ -93,3 +93,7 @@ ENV/
 
 # Expert data files
 *expert_data.pkl
+
+# Saved model data
+saved_model_data/
+
