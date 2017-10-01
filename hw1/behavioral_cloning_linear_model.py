@@ -15,11 +15,13 @@ def main():
     print('training_set size:', training_set['observations'].shape[0])
     print('test_set size:', test_set['observations'].shape[0])
 
+    training_set_size = training_set['observations'].shape[0]
+
     input_vector_size = all_obs.shape[1]
     output_vector_size = all_acts.shape[1]
     print('input', input_vector_size)
     print('output', output_vector_size)
-    batch_size = 100
+    batch_size = 500
     training_steps = 100000
     display_step = 1000
     learning_rate = 0.5
@@ -31,9 +33,10 @@ def main():
     y = tf.nn.softmax(tf.matmul(x, W) + b)
     y_ = tf.placeholder(tf.float32, [None, output_vector_size], name='actual_output')
 
-    cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
+    mse = tf.reduce_sum(tf.pow(y - y_, 2)) / (2 * training_set_size)
+    # cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
 
-    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(mse)
 
     sess = tf.InteractiveSession()
     tf.global_variables_initializer().run()
@@ -44,11 +47,11 @@ def main():
         batch_ys = training_set['actions'][indices]
         sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
         if (epoch + 1) % display_step == 0:
-            cost = sess.run(cross_entropy, feed_dict={x: test_set['observations'], y_: test_set['actions']})
+            cost = sess.run(mse, feed_dict={x: test_set['observations'], y_: test_set['actions']})
             print("Epoch:", '%04d' % (epoch + 1), "cost=", "{:.9f}".format(cost))
 
     print("Optimization Finished!")
-    cost = sess.run(cross_entropy, feed_dict={x: test_set['observations'], y_: test_set['actions']})
+    cost = sess.run(mse, feed_dict={x: test_set['observations'], y_: test_set['actions']})
     print("cost=", "{:.9f}".format(cost), \
           "W=", sess.run(W), "b=", sess.run(b))
 
