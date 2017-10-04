@@ -11,6 +11,7 @@ def main():
     parser.add_argument('expert_policy_file', type=str)
     parser.add_argument('envname', type=str)
     parser.add_argument('--write_policy_to_file', type=str, default='')
+    parser.add_argument('--training_steps', type=int, default=30000)
     args = parser.parse_args()
 
     expert_policy = load_policy.load_policy(args.expert_policy_file)
@@ -42,7 +43,7 @@ def main():
     n_hidden_1 = 50
     n_hidden_2 = 50
     batch_size = 500
-    training_steps = 30000
+    training_steps = args.training_steps
     collect_data_step = 500
     display_step = 1000
     learning_rate = 0.01
