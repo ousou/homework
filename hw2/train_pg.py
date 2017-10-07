@@ -34,11 +34,11 @@ def build_mlp(
     #========================================================================================#
 
     with tf.variable_scope(scope):
-        hidden_layer = tf.layers.dense(input_placeholder, size, name='hidden1')
-        hidden_layer = activation(hidden_layer)
+        hidden_layer = tf.layers.dense(input_placeholder, size)
+        hidden_layer = activation(hidden_layer, name='hidden1')
         for i in range(n_layers - 1):
-            hidden_layer = tf.layers.dense(hidden_layer, size, name='hidden' + str(i+2))
-            hidden_layer = activation(hidden_layer)
+            hidden_layer = tf.layers.dense(hidden_layer, size)
+            hidden_layer = activation(hidden_layer, name='hidden' + str(i+2))
         output_layer = tf.layers.dense(hidden_layer, output_size)
         if output_activation is not None:
             output_layer = output_activation(output_layer, name='output')
