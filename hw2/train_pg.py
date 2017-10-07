@@ -174,16 +174,21 @@ def train_PG(exp_name='',
     #   
     #========================================================================================#
 
+    network_output = build_mlp(sy_ob_no, ac_dim, "policy", n_layers=n_layers, size=size)
     if discrete:
         # YOUR_CODE_HERE
-        sy_logits_na = TODO
-        sy_sampled_ac = TODO # Hint: Use the tf.multinomial op
+        sy_logits_na = tf.nn.softmax(network_output)
+        sy_sampled_ac = tf.multinomial(sy_logits_na, 1)[0] # Hint: Use the tf.multinomial op
+
+        log_prob = tf.nn.log_softmax(sy_logits_na)
+        # TODO: convert action list sy_ac_na into a one-hot vector of length ac_dim
+        #       Then multiply it with the log_prob vector to get the log prob of the action taken
         sy_logprob_n = TODO
 
     else:
         # YOUR_CODE_HERE
-        sy_mean = TODO
-        sy_logstd = TODO # logstd should just be a trainable variable, not a network output.
+        sy_mean = network_output
+        sy_logstd = tf.Variable(tf.zeros([ac_dim])) # logstd should just be a trainable variable, not a network output.
         sy_sampled_ac = TODO
         sy_logprob_n = TODO  # Hint: Use the log probability under a multivariate gaussian. 
 
