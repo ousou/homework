@@ -181,15 +181,15 @@ def train_PG(exp_name='',
         sy_sampled_ac = tf.multinomial(sy_logits_na, 1)[0] # Hint: Use the tf.multinomial op
 
         log_prob = tf.nn.log_softmax(sy_logits_na)
-        # TODO: convert action list sy_ac_na into a one-hot vector of length ac_dim
-        #       Then multiply it with the log_prob vector to get the log prob of the action taken
-        sy_logprob_n = TODO
+        action_mask = tf.one_hot(tf.argmax(sy_ac_na, 1), ac_dim)
+        log_prob_of_action = tf.multiply(action_mask, log_prob)
+        sy_logprob_n = tf.reduce_sum(log_prob_of_action, 1)
 
     else:
         # YOUR_CODE_HERE
         sy_mean = network_output
-        sy_logstd = tf.Variable(tf.zeros([ac_dim])) # logstd should just be a trainable variable, not a network output.
-        sy_sampled_ac = TODO
+        sy_logstd = tf.Variable(tf.random_normal([ac_dim])) # logstd should just be a trainable variable, not a network output.
+        sy_sampled_ac = tf.sum(tf.exp(sy_logstd), tf.multiply(sy_mean, tf.random_normal([ac_dim])))
         sy_logprob_n = TODO  # Hint: Use the log probability under a multivariate gaussian. 
 
 
