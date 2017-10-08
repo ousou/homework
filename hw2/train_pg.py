@@ -183,7 +183,7 @@ def train_PG(exp_name='',
         sy_sampled_ac = tf.multinomial(sy_logits_na, 1)[0] # Hint: Use the tf.multinomial op
 
         log_prob = tf.nn.log_softmax(sy_logits_na)
-        action_mask = tf.one_hot(tf.argmax(sy_ac_na, 1), ac_dim)
+        action_mask = tf.one_hot(sy_ac_na, ac_dim)
         log_prob_of_action = tf.multiply(action_mask, log_prob)
         sy_logprob_n = tf.reduce_sum(log_prob_of_action, 1)
 
@@ -336,7 +336,7 @@ def train_PG(exp_name='',
         # YOUR_CODE_HERE
         q_n = np.array([])
         for path in paths:
-            rewards = path("reward")
+            rewards = path["reward"]
             discounts = np.logspace(0, len(rewards), num=len(rewards), base=gamma, endpoint=False)
             if reward_to_go:
                 q_n_for_path = []
@@ -412,7 +412,9 @@ def train_PG(exp_name='',
         # and after an update, and then log them below. 
 
         # YOUR_CODE_HERE
-
+        loss_pre = sess.run(loss, feed_dict={sy_ob_no: ob_no, sy_ac_na: ac_na, sy_adv_n: adv_n})
+        sess.run(update_op, feed_dict={sy_ob_no: ob_no, sy_ac_na: ac_na, sy_adv_n: adv_n})
+        loss_post = sess.run(loss, feed_dict={sy_ob_no: ob_no, sy_ac_na: ac_na, sy_adv_n: adv_n})
 
         # Log diagnostics
         returns = [path["reward"].sum() for path in paths]
@@ -427,6 +429,8 @@ def train_PG(exp_name='',
         logz.log_tabular("EpLenStd", np.std(ep_lengths))
         logz.log_tabular("TimestepsThisBatch", timesteps_this_batch)
         logz.log_tabular("TimestepsSoFar", total_timesteps)
+        logz.log_tabular("LossBeforeUpdate", loss_pre)
+        logz.log_tabular("LossAfterUpdate", loss_post)
         logz.dump_tabular()
         logz.pickle_tf_vars()
 
