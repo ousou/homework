@@ -334,7 +334,21 @@ def train_PG(exp_name='',
         #====================================================================================#
 
         # YOUR_CODE_HERE
-        q_n = TODO
+        q_n = np.array([])
+        for path in paths:
+            rewards = path("reward")
+            discounts = np.logspace(0, len(rewards), num=len(rewards), base=gamma, endpoint=False)
+            if reward_to_go:
+                q_n_for_path = []
+                for t in range(len(rewards)):
+                    q_t = np.sum(np.multiply(rewards[t:], discounts[:(len(rewards)-t)]))
+                    q_n_for_path.append(q_t)
+                q_n_for_path = np.array(q_n_for_path)
+            else:
+                q_t0 = np.sum(np.multiply(rewards, discounts))
+                q_n_for_path = np.repeat(q_t0, len(rewards))
+
+            q_n = np.append(q_n, q_n_for_path)
 
         #====================================================================================#
         #                           ----------SECTION 5----------
