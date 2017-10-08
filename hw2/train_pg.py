@@ -42,6 +42,8 @@ def build_mlp(
         output_layer = tf.layers.dense(hidden_layer, output_size)
         if output_activation is not None:
             output_layer = output_activation(output_layer, name='output')
+        else:
+            output_layer = tf.identity(output_layer, name='output')
         return output_layer
 
 
@@ -177,7 +179,7 @@ def train_PG(exp_name='',
     network_output = build_mlp(sy_ob_no, ac_dim, "policy", n_layers=n_layers, size=size)
     if discrete:
         # YOUR_CODE_HERE
-        sy_logits_na = tf.nn.softmax(network_output)
+        sy_logits_na = network_output
         sy_sampled_ac = tf.multinomial(sy_logits_na, 1)[0] # Hint: Use the tf.multinomial op
 
         log_prob = tf.nn.log_softmax(sy_logits_na)
