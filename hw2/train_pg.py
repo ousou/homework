@@ -191,7 +191,7 @@ def train_PG(exp_name='',
         # YOUR_CODE_HERE
         sy_mean = network_output
         sy_logstd = tf.Variable(tf.random_normal([ac_dim])) # logstd should just be a trainable variable, not a network output.
-        sy_sampled_ac = tf.sum(tf.exp(sy_logstd), tf.multiply(sy_mean, tf.random_normal([ac_dim])))
+        sy_sampled_ac = tf.sum(sy_mean, tf.multiply(tf.exp(sy_logstd), tf.random_normal([ac_dim])))
         sy_logprob_n = TODO  # Hint: Use the log probability under a multivariate gaussian. 
 
 
