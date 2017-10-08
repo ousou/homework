@@ -191,7 +191,7 @@ def train_PG(exp_name='',
         # YOUR_CODE_HERE
         sy_mean = network_output
         sy_logstd = tf.Variable(tf.random_normal([ac_dim])) # logstd should just be a trainable variable, not a network output.
-        sy_sampled_ac = tf.sum(sy_mean, tf.multiply(tf.exp(sy_logstd), tf.random_normal([ac_dim])))
+        sy_sampled_ac = sy_mean + tf.exp(sy_logstd) * tf.random_normal([ac_dim])
         distrib = tf.contrib.distributions.MultivariateNormal(loc=sy_mean, scale_diag=sy_logstd)
         sy_logprob_n = distrib.log_prob(sy_ac_na)  # Hint: Use the log probability under a multivariate gaussian.
 
@@ -202,7 +202,7 @@ def train_PG(exp_name='',
     # Loss Function and Training Operation
     #========================================================================================#
 
-    loss = TODO # Loss function that we'll differentiate to get the policy gradient.
+    loss = -tf.reduce_mean(sy_logprob_n * sy_adv_n) # Loss function that we'll differentiate to get the policy gradient.
     update_op = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
 
