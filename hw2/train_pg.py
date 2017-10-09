@@ -379,7 +379,6 @@ def train_PG(exp_name='',
             # in policy gradient methods: normalize adv_n to have mean zero and std=1. 
             # YOUR_CODE_HERE
             adv_n = (adv_n - np.mean(adv_n)) / np.std(adv_n)
-            pass
 
 
         #====================================================================================#
