@@ -190,7 +190,8 @@ def train_PG(exp_name='',
     else:
         # YOUR_CODE_HERE
         sy_mean = network_output
-        sy_logstd = tf.Variable(tf.random_normal([ac_dim])) # logstd should just be a trainable variable, not a network output.
+        # Note: If the initial stddev of sy_logstd is large (for instance 1) then a bad seed might make the learning very slow.
+        sy_logstd = tf.Variable(tf.random_normal([ac_dim], stddev=0.1)) # logstd should just be a trainable variable, not a network output.
         sy_sampled_ac = sy_mean + tf.exp(sy_logstd) * tf.random_normal([ac_dim])
         distrib = tf.contrib.distributions.MultivariateNormalDiag(loc=sy_mean, scale_diag=tf.exp(sy_logstd))
         sy_logprob_n = distrib.log_prob(sy_ac_na)  # Hint: Use the log probability under a multivariate gaussian.
