@@ -97,3 +97,5 @@ ENV/
 # Saved model data
 saved_model_data/
 
+# Generated data
+data/
