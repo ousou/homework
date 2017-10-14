@@ -118,7 +118,10 @@ def train_PG(exp_name='',
 
     # Observation and action sizes
     ob_dim = env.observation_space.shape[0]
+    print('observation dimension:', ob_dim)
     ac_dim = env.action_space.n if discrete else env.action_space.shape[0]
+    print('action dimension:', ac_dim)
+    print('discrete environment:', discrete)
 
     #========================================================================================#
     #                           ----------SECTION 4----------
