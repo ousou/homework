@@ -226,7 +226,9 @@ def train_PG(exp_name='',
         # Define placeholders for targets, a loss function and an update op for fitting a 
         # neural network baseline. These will be used to fit the neural network baseline. 
         # YOUR_CODE_HERE
-        baseline_update_op = TODO
+        sy_rew_n = tf.placeholder(shape=[None], name="rew", dtype=tf.float32)
+        baseline_loss = tf.squared_difference(baseline_prediction, sy_rew_n)
+        baseline_update_op = tf.train.AdamOptimizer(learning_rate).minimize(baseline_loss)
 
 
     #========================================================================================#
@@ -368,8 +370,8 @@ def train_PG(exp_name='',
             # Hint #bl1: rescale the output from the nn_baseline to match the statistics
             # (mean and std) of the current or previous batch of Q-values. (Goes with Hint
             # #bl2 below.)
-
-            b_n = TODO
+            b_n = sess.run(baseline_prediction, feed_dict={sy_ob_no : ob_no})
+            b_n = np.mean(q_n) + (b_n - np.mean(b_n)) * (np.std(q_n) / np.std(b_n))
             adv_n = q_n - b_n
         else:
             adv_n = q_n.copy()
@@ -402,7 +404,8 @@ def train_PG(exp_name='',
             # targets to have mean zero and std=1. (Goes with Hint #bl1 above.)
 
             # YOUR_CODE_HERE
-            pass
+            q_n_to_fit = (q_n - np.mean(q_n)) / np.std(q_n)
+            sess.run(baseline_update_op, feed_dict={sy_ob_no : ob_no, sy_rew_n: q_n_to_fit})
 
         #====================================================================================#
         #                           ----------SECTION 4----------
