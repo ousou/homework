@@ -72,7 +72,8 @@ def train_PG(exp_name='',
              seed=0,
              # network arguments
              n_layers=1,
-             size=32
+             size=32,
+             write_policy_to_file=''
              ):
 
     start = time.time()
@@ -437,6 +438,13 @@ def train_PG(exp_name='',
         logz.dump_tabular()
         logz.pickle_tf_vars()
 
+    if write_policy_to_file:
+        save_policy(write_policy_to_file, sess)
+
+def save_policy(file_name, session):
+    saver = tf.train.Saver()
+    print('writing trained policy to file', file_name)
+    saver.save(session, file_name)
 
 def main():
     import argparse
@@ -456,6 +464,7 @@ def main():
     parser.add_argument('--n_experiments', '-e', type=int, default=1)
     parser.add_argument('--n_layers', '-l', type=int, default=1)
     parser.add_argument('--size', '-s', type=int, default=32)
+    parser.add_argument('--write_policy_to_file', type=str, default='')
     args = parser.parse_args()
 
     if not(os.path.exists('data')):
@@ -486,7 +495,8 @@ def main():
                 nn_baseline=args.nn_baseline, 
                 seed=seed,
                 n_layers=args.n_layers,
-                size=args.size
+                size=args.size,
+                write_policy_to_file=args.write_policy_to_file
                 )
         # Awkward hacky process runs, because Tensorflow does not like
         # repeatedly calling train_PG in the same thread.
