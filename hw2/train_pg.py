@@ -227,7 +227,7 @@ def train_PG(exp_name='',
         # neural network baseline. These will be used to fit the neural network baseline. 
         # YOUR_CODE_HERE
         sy_rew_n = tf.placeholder(shape=[None], name="rew", dtype=tf.float32)
-        baseline_loss = tf.squared_difference(baseline_prediction, sy_rew_n)
+        baseline_loss = tf.nn.l2_loss(sy_rew_n - baseline_prediction)
         baseline_update_op = tf.train.AdamOptimizer(learning_rate).minimize(baseline_loss)
 
 
