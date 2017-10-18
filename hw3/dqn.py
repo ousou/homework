@@ -126,7 +126,14 @@ def learn(env,
     # q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
     # Older versions of TensorFlow may require using "VARIABLES" instead of "GLOBAL_VARIABLES"
     ######
-    
+    q_t = q_func(obs_t_float, num_actions, scope="q_func", reuse=False)
+    q_tp1 = q_func(obs_tp1_float, num_actions, scope="q_func_next", reuse=False)
+    q_target = q_func(obs_t_float, num_actions, scope="q_func_target", reuse=False)
+    q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
+    target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func_target')
+
+    # how to compute the Q values? q_t only takes observations, not actions.
+    # Perhaps the outputs of q_t are the expected rewards for each action?
     # YOUR CODE HERE
 
     ######
