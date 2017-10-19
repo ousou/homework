@@ -210,7 +210,7 @@ def learn(env,
         last_obs, reward, done, info = env.step(action)
         replay_buffer.store_effect(id, action, reward, done)
         if done:
-            env.reset()
+            last_obs = env.reset()
 
         #####
 
