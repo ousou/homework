@@ -213,7 +213,7 @@ def learn(env,
         if model_initialized:
             action = get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
         else:
-            action = session.run(tf.random_uniform([1], minval=0, maxval=num_actions, dtype=tf.int32)[0])
+            action = env.action_space.sample()
         last_obs, reward, done, info = env.step(action)
         replay_buffer.store_effect(id, action, reward, done)
         if done:
