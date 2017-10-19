@@ -7,6 +7,8 @@ import tensorflow                as tf
 import tensorflow.contrib.layers as layers
 from collections import namedtuple
 from dqn_utils import *
+import time
+import datetime
 
 OptimizerSpec = namedtuple("OptimizerSpec", ["constructor", "kwargs", "lr_schedule"])
 
@@ -164,7 +166,11 @@ def learn(env,
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
     epsilon = 0.05
+    saver = tf.train.Saver()
     for t in itertools.count():
+        if t % 1000 == 0:
+            print('%s Step' % datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), t)
+            sys.stdout.flush()
         ### 1. Check stopping criterion
         if stopping_criterion is not None and stopping_criterion(env, t):
             break
@@ -260,7 +266,6 @@ def learn(env,
             # you should update every target_update_freq steps, and you may find the
             # variable num_param_updates useful for this (it was initialized to 0)
             #####
-            
             # YOUR CODE HERE
             # 3.a sample transitions
             obs_t_batch, act_batch, rew_batch, obs_tp1_batch, done_mask = replay_buffer.sample(batch_size)
@@ -270,6 +275,7 @@ def learn(env,
                        obs_t_ph: obs_t_batch,
                        obs_tp1_ph: obs_tp1_batch,
                    })
+                print('Learning starts! Initializing model. t: ', t)
                 session.run(update_target_fn)
                 model_initialized = True
 
@@ -309,6 +315,7 @@ def learn(env,
             print("exploration %f" % exploration.value(t))
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
+            saver.save(sess, 'saved_models/atari_pong', global_step=t)
 
 
 def get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
