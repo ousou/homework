@@ -162,7 +162,7 @@ def learn(env,
     best_mean_episode_reward = -float('inf')
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
-
+    epsilon = 0.05
     for t in itertools.count():
         ### 1. Check stopping criterion
         if stopping_criterion is not None and stopping_criterion(env, t):
@@ -201,6 +201,16 @@ def learn(env,
         #####
         
         # YOUR CODE HERE
+        id = replay_buffer.store_frame(last_obs)
+        encoded_obs = replay_buffer.encode_recent_observation()
+        if model_initialized:
+            action = get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon)
+        else:
+            action = tf.random_uniform([1], minval=0, maxval=num_actions, type=tf.int32)[0]
+        last_obs, reward, done, info = env.step(action)
+        replay_buffer.store_effect(id, action, reward, done)
+        if done:
+            env.reset()
 
         #####
 
@@ -268,3 +278,15 @@ def learn(env,
             print("exploration %f" % exploration.value(t))
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
+
+
+def get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
+    best_action = session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
+    random_val = session.run(tf.random_uniform([1]))[0]
+    if (random_val > epsilon):
+        action = best_action
+    else:
+        action = session.run(tf.random_uniform([1], minval=0, maxval=num_actions - 1, type=tf.int32))[0]
+        if (action >= best_action):
+            action = action + 1
+    return action
