@@ -132,6 +132,7 @@ def learn(env,
     target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func_target')
 
     y_t = rew_t_ph + (1 - done_mask_ph) * gamma * tf.reduce_max(q_tp1)
+
     current_q_val = tf.gather_nd(q_t, [0, act_t_ph])
     total_error = tf.abs(current_q_val - y_t)
 
@@ -269,8 +270,29 @@ def learn(env,
                        obs_t_ph: obs_t_batch,
                        obs_tp1_ph: obs_tp1_batch,
                    })
+                session.run(update_target_fn)
+                model_initialized = True
 
-
+            # 3.c train model
+            session.run(train_fn, feed_dict={
+                obs_t_ph: obs_t_batch,
+                act_t_ph: act_batch,
+                rew_t_ph: rew_batch,
+                obs_tp1_ph: obs_tp1_batch,
+                done_mask_ph: done_mask,
+                learning_rate: optimizer_spec.lr_schedule.value(t)
+            })
+            num_param_updates += 1
+            # 3.d update target network
+            if (num_param_updates % target_update_freq == 0):
+                session.run(update_target_fn)
+                train_loss = session.run(total_error, feed_dict={
+                    obs_t_ph: obs_t_batch,
+                    act_t_ph: act_batch,
+                    rew_t_ph: rew_batch,
+                    obs_tp1_ph: obs_tp1_batch,
+                    done_mask_ph: done_mask})
+            print("Loss at iter {}: {}".format(t, train_loss))
             #####
 
         ### 4. Log progress
@@ -297,5 +319,5 @@ def get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
     else:
         action = session.run(tf.random_uniform([1], minval=0, maxval=num_actions - 1, type=tf.int32))[0]
         if (action >= best_action):
-            action = action + 1
+            action += 1
     return action
