@@ -315,7 +315,7 @@ def learn(env,
             print("exploration %f" % exploration.value(t))
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
-            saver.save(sess, 'saved_models/atari_pong', global_step=t)
+            saver.save(session, 'saved_models/atari_pong', global_step=t)
 
 
 def get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
