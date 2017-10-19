@@ -9,6 +9,7 @@ from collections import namedtuple
 from dqn_utils import *
 import time
 import datetime
+import pickle
 
 OptimizerSpec = namedtuple("OptimizerSpec", ["constructor", "kwargs", "lr_schedule"])
 
@@ -165,8 +166,10 @@ def learn(env,
     best_mean_episode_reward = -float('inf')
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
-    epsilon = 0.05
     saver = tf.train.Saver()
+    mean_rewards = []
+    best_rewards = []
+    timesteps = []
     for t in itertools.count():
         if t % 1000 == 0:
             print('%s Step' % datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), t)
@@ -276,6 +279,7 @@ def learn(env,
                        obs_tp1_ph: obs_tp1_batch,
                    })
                 print('Learning starts! Initializing model. t: ', t)
+                sys.stdout.flush()
                 session.run(update_target_fn)
                 model_initialized = True
 
@@ -298,7 +302,8 @@ def learn(env,
                     rew_t_ph: rew_batch,
                     obs_tp1_ph: obs_tp1_batch,
                     done_mask_ph: done_mask})
-            print("Loss at iter {}: {}".format(t, train_loss))
+                print("Loss at iter {}: {}".format(t, train_loss))
+                sys.stdout.flush()
             #####
 
         ### 4. Log progress
@@ -308,6 +313,9 @@ def learn(env,
         if len(episode_rewards) > 100:
             best_mean_episode_reward = max(best_mean_episode_reward, mean_episode_reward)
         if t % LOG_EVERY_N_STEPS == 0 and model_initialized:
+            mean_rewards.append(mean_episode_reward)
+            best_rewards.append(best_mean_episode_reward)
+            timesteps.append(t)
             print("Timestep %d" % (t,))
             print("mean reward (100 episodes) %f" % mean_episode_reward)
             print("best mean reward %f" % best_mean_episode_reward)
@@ -316,12 +324,18 @@ def learn(env,
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
             saver.save(session, 'saved_models/atari_pong', global_step=t)
+            rewards_data = {
+                'mean': mean_rewards,
+                'best': best_rewards,
+                't': timesteps
+            }
+            with open('saved_models/atari_pong_reward_data.pkl', 'wb') as f:
+                pickle.dump(rewards_data, f)
 
 
 def get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
     random_val = np.random.rand()
     if (random_val > epsilon + epsilon/(num_actions - 1)):
-        action = session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
+        return session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
     else:
-        env.action_space.sample()
-    return action
+        return env.action_space.sample()
