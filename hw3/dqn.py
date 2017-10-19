@@ -204,7 +204,7 @@ def learn(env,
         id = replay_buffer.store_frame(last_obs)
         encoded_obs = replay_buffer.encode_recent_observation()
         if model_initialized:
-            action = get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon)
+            action = get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
         else:
             action = tf.random_uniform([1], minval=0, maxval=num_actions, type=tf.int32)[0]
         last_obs, reward, done, info = env.step(action)
@@ -261,6 +261,15 @@ def learn(env,
             #####
             
             # YOUR CODE HERE
+            # 3.a sample transitions
+            obs_t_batch, act_batch, rew_batch, obs_tp1_batch, done_mask = replay_buffer.sample(batch_size)
+            # 3.b initialize the model
+            if not model_initialized:
+                initialize_interdependent_variables(session, tf.global_variables(), {
+                       obs_t_ph: obs_t_batch,
+                       obs_tp1_ph: obs_tp1_batch,
+                   })
+
 
             #####
 
