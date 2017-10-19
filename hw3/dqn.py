@@ -211,7 +211,7 @@ def learn(env,
         id = replay_buffer.store_frame(last_obs)
         encoded_obs = replay_buffer.encode_recent_observation()
         if model_initialized:
-            action = get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
+            action = get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
         else:
             action = session.run(tf.random_uniform([1], minval=0, maxval=num_actions, dtype=tf.int32)[0])
         last_obs, reward, done, info = env.step(action)
@@ -318,13 +318,10 @@ def learn(env,
             saver.save(sess, 'saved_models/atari_pong', global_step=t)
 
 
-def get_action(session, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
-    best_action = session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
-    random_val = session.run(tf.random_uniform([1]))[0]
-    if (random_val > epsilon):
-        action = best_action
+def get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
+    random_val = np.random.rand()
+    if (random_val > epsilon + epsilon/(num_actions - 1)):
+        action = session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
     else:
-        action = session.run(tf.random_uniform([1], minval=0, maxval=num_actions - 1, type=tf.int32))[0]
-        if (action >= best_action):
-            action += 1
+        env.action_space.sample()
     return action
