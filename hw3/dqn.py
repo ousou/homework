@@ -336,6 +336,6 @@ def learn(env,
 def get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
     random_val = np.random.rand()
     if (random_val > epsilon + epsilon/(num_actions - 1)):
-        return session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs})[0]
+        return session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs[None]})[0]
     else:
         return env.action_space.sample()
