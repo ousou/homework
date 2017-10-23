@@ -129,14 +129,14 @@ def learn(env,
     # q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
     # Older versions of TensorFlow may require using "VARIABLES" instead of "GLOBAL_VARIABLES"
     ######
-    q_t = q_func(obs_t_float, num_actions, scope="q_func", reuse=False)
-    q_tp1 = q_func(obs_tp1_float, num_actions, scope="q_func_target", reuse=False)
+    q = q_func(obs_t_float, num_actions, scope="q_func", reuse=False)
+    q_target = q_func(obs_tp1_float, num_actions, scope="q_func_target", reuse=False)
     q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func')
     target_q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='q_func_target')
 
-    y_t = rew_t_ph + (1 - done_mask_ph) * gamma * tf.reduce_max(q_tp1, axis = 1)
+    y_t = rew_t_ph + (1 - done_mask_ph) * gamma * tf.reduce_max(q_target, axis = 1)
     action_mask = tf.one_hot(act_t_ph, num_actions)
-    current_q_val = tf.reduce_sum(tf.multiply(action_mask, q_t), 1)
+    current_q_val = tf.reduce_sum(tf.multiply(action_mask, q), 1)
     total_error = tf.reduce_mean(tf.losses.huber_loss(y_t, current_q_val))
 
     ######
@@ -214,7 +214,7 @@ def learn(env,
         id = replay_buffer.store_frame(last_obs)
         encoded_obs = replay_buffer.encode_recent_observation()
         if model_initialized:
-            action = get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
+            action = get_action(session, env, q, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
         else:
             action = env.action_space.sample()
         last_obs, reward, done, info = env.step(action)
