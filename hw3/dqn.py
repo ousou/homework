@@ -170,6 +170,7 @@ def learn(env,
     mean_rewards = []
     best_rewards = []
     timesteps = []
+
     for t in itertools.count():
         if t % 1000 == 0:
             print('%s Step' % datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), t)
@@ -323,13 +324,13 @@ def learn(env,
             print("exploration %f" % exploration.value(t))
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
-            saver.save(session, 'saved_models/atari_pong', global_step=t)
+            saver.save(session, 'atari_pong', global_step=t)
             rewards_data = {
                 'mean': mean_rewards,
                 'best': best_rewards,
                 't': timesteps
             }
-            with open('saved_models/atari_pong_reward_data.pkl', 'wb') as f:
+            with open('atari_pong_reward_data.pkl', 'wb') as f:
                 pickle.dump(rewards_data, f)
 
 
