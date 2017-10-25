@@ -213,9 +213,14 @@ def learn(env,
         
         # YOUR CODE HERE
         id = replay_buffer.store_frame(last_obs)
-        encoded_obs = replay_buffer.encode_recent_observation()
         if model_initialized:
-            action = get_action(session, env, q, obs_t_ph, encoded_obs, num_actions, exploration.value(t))
+            epsilon = exploration.value(t)
+            random_val = np.random.rand()
+            if (random_val > epsilon + epsilon / (num_actions - 1)):
+                encoded_obs = replay_buffer.encode_recent_observation()
+                action = session.run(tf.argmax(q, axis=1), feed_dict={obs_t_ph: encoded_obs[None]})[0]
+            else:
+                action = env.action_space.sample()
         else:
             action = env.action_space.sample()
         last_obs, reward, done, info = env.step(action)
@@ -333,10 +338,3 @@ def learn(env,
             with open('atari_pong_reward_data.pkl', 'wb') as f:
                 pickle.dump(rewards_data, f)
 
-
-def get_action(session, env, q_t, obs_t_ph, encoded_obs, num_actions, epsilon):
-    random_val = np.random.rand()
-    if (random_val > epsilon + epsilon/(num_actions - 1)):
-        return session.run(tf.argmax(q_t, axis=1), feed_dict={obs_t_ph: encoded_obs[None]})[0]
-    else:
-        return env.action_space.sample()
