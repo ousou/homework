@@ -166,7 +166,7 @@ def learn(env,
     best_mean_episode_reward = -float('inf')
     last_obs = env.reset()
     LOG_EVERY_N_STEPS = 10000
-    saver = tf.train.Saver()
+    # saver = tf.train.Saver()
     mean_rewards = []
     best_rewards = []
     timesteps = []
@@ -324,7 +324,7 @@ def learn(env,
             print("exploration %f" % exploration.value(t))
             print("learning_rate %f" % optimizer_spec.lr_schedule.value(t))
             sys.stdout.flush()
-            saver.save(session, 'atari_pong', global_step=t)
+            # saver.save(session, 'atari_pong', global_step=t)
             rewards_data = {
                 'mean': mean_rewards,
                 'best': best_rewards,
