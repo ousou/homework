@@ -6,6 +6,7 @@ import scipy.signal
 import os
 import time
 import inspect
+import roboschool
 from multiprocessing import Process
 
 #============================================================================================#
