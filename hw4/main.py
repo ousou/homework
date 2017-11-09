@@ -9,7 +9,8 @@ import logz
 import os
 import copy
 import matplotlib.pyplot as plt
-from cheetah_env import HalfCheetahEnvNew
+# from cheetah_env import HalfCheetahEnvNew
+import roboschool
 
 def sample(env, 
            controller, 
@@ -222,10 +223,19 @@ def main():
         os.makedirs(logdir)
 
     # Make env
-    if args.env_name is "HalfCheetah-v1":
-        env = HalfCheetahEnvNew()
-        cost_fn = cheetah_cost_fn
-    train(env=env, 
+    # if args.env_name is "HalfCheetah-v1":
+    #     env = HalfCheetahEnvNew()
+    #     cost_fn = cheetah_cost_fn
+    env = gym.make(args.env_name)
+    cost_fn = cheetah_cost_fn
+    env.reset()
+    # env.render()
+    # done = False
+    # while not done:
+    #     action = env.action_space.sample()
+    #     last_obs, reward, done, info = env.step(action)
+
+    train(env=env,
                  cost_fn=cost_fn,
                  logdir=logdir,
                  render=args.render,
@@ -233,10 +243,10 @@ def main():
                  onpol_iters=args.onpol_iters,
                  dynamics_iters=args.dyn_iters,
                  batch_size=args.batch_size,
-                 num_paths_random=args.random_paths, 
-                 num_paths_onpol=args.onpol_paths, 
+                 num_paths_random=args.random_paths,
+                 num_paths_onpol=args.onpol_paths,
                  num_simulated_paths=args.simulated_paths,
-                 env_horizon=args.ep_len, 
+                 env_horizon=args.ep_len,
                  mpc_horizon=args.mpc_horizon,
                  n_layers = args.n_layers,
                  size=args.size,
