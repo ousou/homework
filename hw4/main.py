@@ -26,29 +26,33 @@ def sample(env,
     paths = []
     for itr in range(num_paths):
         obs = env.reset()
-        current_path = {
-            'observations': [],
-            'next_observations': [],
-            'actions': [],
-            'rewards': []
-        }
         steps = 0
+        observations = []
+        next_observations = []
+        actions = []
+        rewards = []
         while True:
             if render:
                 env.render()
                 time.sleep(0.05)
-            current_path['observations'].append(obs)
+            observations.append(obs)
             action = controller.get_action(obs)
-            current_path['actions'].append(action)
+            actions.append(action)
             next_obs, reward, done, info = env.step(action)
             if verbose:
                 print('info:', info)
-            current_path['next_observations'].append(next_obs)
-            current_path['rewards'].append(reward)
+                next_observations.append(next_obs)
+                rewards.append(reward)
             steps += 1
             obs = next_obs
             if (done or steps >= horizon):
                 break
+        current_path = {
+            'observations': np.array(observations),
+            'next_observations': np.array(next_observations),
+            'actions': np.array(actions),
+            'rewards': np.array(rewards)
+        }
         paths.append(current_path)
 
     return paths
