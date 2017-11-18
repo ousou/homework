@@ -46,14 +46,26 @@ class NNDynamicsModel():
         ac_dim = env.action_space.n if isinstance(env.action_space, gym.spaces.Discrete) else env.action_space.shape[0]
         self.input_ph = tf.placeholder(shape=[None, ob_dim + ac_dim], name="input", dtype=tf.float32)
         self.model = build_mlp(self.input_ph, ob_dim, "dyn_model", n_layers, size, activation, output_activation)
+        self.pred_ph = tf.placeholder(shape=[None, ob_dim], name="input", dtype=tf.float32)
         self.eps = 0.000001
+        self.loss = tf.nn.l2_loss(self.pred_ph, self.model)
+        self.update_op = tf.train.AdamOptimizer(learning_rate).minimize(self.loss)
 
     def fit(self, data):
         """
         Write a function to take in a dataset of (unnormalized)states, (unnormalized)actions, (unnormalized)next_states and fit the dynamics model going from normalized states, normalized actions to normalized state differences (s_t+1 - s_t)
         """
+        states = data['states']
+        actions = data['actions']
+        next_states = data['next_states']
+        state_deltas = next_states - states
+        norm_states = map(self._normalize_state, states)
+        norm_actions = map(self._normalize_action, actions)
+        norm_deltas = map(self._normalize_state_delta, state_deltas)
+        inputs = np.concatenate((norm_states, norm_actions), axis=0)
+        preds = norm_deltas
 
-        """YOUR CODE HERE """
+        self.sess.run(self.update_op, feed_dict={self.input_ph: [inputs], self.pred_ph: [preds]})
 
     def predict(self, states, actions):
         output_states = []
@@ -64,13 +76,16 @@ class NNDynamicsModel():
             # action_input = (actions[i] - self.act_mean) / (self.act_std + self.eps)
             input = np.concatenate((state_input, action_input), axis=0)
             state_delta = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
-            state_delta = self._denormalize_state_diff(state_delta)
+            state_delta = self._denormalize_state_delta(state_delta)
             output_states.append(np.sum(state_delta, states[i]))
         return np.array(output_states)
 
-    def _denormalize_state_diff(self, state):
-        state = np.array(state)
-        return self.delta_mean + (self.delta_std * state)
+    def _denormalize_state_delta(self, delta):
+        delta = np.array(delta)
+        return self.delta_mean + (self.delta_std * delta)
+
+    def _normalize_state_delta(self, delta):
+        return (delta - self.delta_mean) / (self.delta_std + self.eps)
 
     def _normalize_state(self, state):
         return (state - self.state_mean) / (self.state_std + self.eps)
