@@ -24,7 +24,27 @@ def sample(env,
         Each path can have elements for observations, next_observations, rewards, returns, actions, etc.
     """
     paths = []
-    """ YOUR CODE HERE """
+    for itr in range(num_paths):
+        obs = env.reset()
+        current_path = {
+            'obs': [],
+            'next_obs': [],
+            'action': [],
+            'reward': []
+        }
+        steps = 0
+        while True:
+            current_path['obs'].append(obs)
+            action = controller.get_action(obs)
+            current_path['action'].append(action)
+            next_obs, reward, done, info = env.step(action)
+            current_path['next_obs'].append(next_obs)
+            current_path['reward'].append(reward)
+            steps += 1
+            obs = next_obs
+            if (done or steps >= horizon):
+                break
+        paths.append(current_path)
 
     return paths
 
