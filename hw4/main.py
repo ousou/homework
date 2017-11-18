@@ -34,12 +34,17 @@ def sample(env,
         }
         steps = 0
         while True:
-            current_path['obs'].append(obs)
+            if render:
+                env.render()
+                time.sleep(0.05)
+            current_path['observations'].append(obs)
             action = controller.get_action(obs)
-            current_path['action'].append(action)
+            current_path['actions'].append(action)
             next_obs, reward, done, info = env.step(action)
-            current_path['next_obs'].append(next_obs)
-            current_path['reward'].append(reward)
+            if verbose:
+                print('info:', info)
+            current_path['next_observations'].append(next_obs)
+            current_path['rewards'].append(reward)
             steps += 1
             obs = next_obs
             if (done or steps >= horizon):
