@@ -27,10 +27,10 @@ def sample(env,
     for itr in range(num_paths):
         obs = env.reset()
         current_path = {
-            'obs': [],
-            'next_obs': [],
-            'action': [],
-            'reward': []
+            'observations': [],
+            'next_observations': [],
+            'actions': [],
+            'rewards': []
         }
         steps = 0
         while True:
