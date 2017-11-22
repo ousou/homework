@@ -24,6 +24,7 @@ def sample(env,
         Each path can have elements for observations, next_observations, rewards, returns, actions, etc.
     """
     paths = []
+    obs = env.reset()
     for itr in range(num_paths):
         obs = env.reset()
         steps = 0
@@ -79,6 +80,14 @@ def extract_from_path_list(pathlist):
         'next_states': np.array(next_states),
         'deltas': np.array(deltas)
     }
+
+def calculate_costs_and_rewards_from_path_list(pathlist, cost_fn):
+    costs = []
+    rewards = []
+    for path in pathlist:
+        rewards.extend(path['rewards'])
+        costs.append(path_cost(cost_fn, path))
+    return np.array(costs), np.array(rewards)
 
 def compute_normalization(data):
     states = data['states']
@@ -165,7 +174,7 @@ def train(env,
     random_controller = RandomController(env)
     pathlist = sample(env, random_controller, num_paths_random, env_horizon)
     data = extract_from_path_list(pathlist)
-    # print('data', data)
+    print('random data size: ',len(data['states']))
 
 
     #========================================================
@@ -177,7 +186,7 @@ def train(env,
     # from the dynamics network. 
     # 
     normalization = compute_normalization(data)
-    print('normalization', normalization)
+    # print('normalization', normalization)
     #
     # if True:
     #     return
@@ -217,9 +226,17 @@ def train(env,
     # 
     # Take multiple iterations of onpolicy aggregation at each iteration refitting the dynamics model to current dataset and then taking onpolicy samples and aggregating to the dataset. 
     # Note: You don't need to use a mixing ratio in this assignment for new and old data as described in https://arxiv.org/abs/1708.02596
-    # 
+    #
+    print('onpol_iters', onpol_iters)
     for itr in range(onpol_iters):
         dyn_model.fit(data)
+        print('data fit done for itr', itr)
+        new_pathlist = sample(env, mpc_controller, num_paths_onpol, env_horizon)
+        pathlist.extend(new_pathlist)
+        costs, returns = calculate_costs_and_rewards_from_path_list(new_pathlist, cost_fn)
+        data = extract_from_path_list(pathlist)
+        print('data size: ', len(data['states']))
+        # print('action', action)
         """ YOUR CODE HERE """
 
 
@@ -252,11 +269,11 @@ def main():
     parser.add_argument('--render', action='store_true')
     # Training args
     parser.add_argument('--learning_rate', '-lr', type=float, default=1e-3)
-    parser.add_argument('--onpol_iters', '-n', type=int, default=1)
+    parser.add_argument('--onpol_iters', '-n', type=int, default=10)
     parser.add_argument('--dyn_iters', '-nd', type=int, default=60)
     parser.add_argument('--batch_size', '-b', type=int, default=512)
     # Data collection
-    parser.add_argument('--random_paths', '-r', type=int, default=10)
+    parser.add_argument('--random_paths', '-r', type=int, default=100)
     parser.add_argument('--onpol_paths', '-d', type=int, default=10)
     parser.add_argument('--simulated_paths', '-sp', type=int, default=1000)
     parser.add_argument('--ep_len', '-ep', type=int, default=1000)
