@@ -74,17 +74,6 @@ class NNDynamicsModel():
         state_deltas = self.sess.run(self.model, feed_dict={self.input_ph: input})
         state_deltas = self._denormalize_state_delta(state_deltas)
         return states + state_deltas
-        # output_states = []
-        # for i in range(len(states)):
-        #     state_input = self._normalize_state(states[i])
-        #     action_input = self._normalize_action(actions[i])
-        #     # state_input = (states[i] - self.state_mean) / (self.state_std + self.eps)
-        #     # action_input = (actions[i] - self.act_mean) / (self.act_std + self.eps)
-        #     input = np.concatenate((state_input, action_input), axis=0)
-        #     state_delta = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
-        #     state_delta = self._denormalize_state_delta(state_delta)
-        #     output_states.append(np.sum(state_delta, states[i]))
-        # return np.array(output_states)
 
     def _denormalize_state_delta(self, delta):
         delta = np.array(delta)
