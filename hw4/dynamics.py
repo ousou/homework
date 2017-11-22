@@ -63,8 +63,8 @@ class NNDynamicsModel():
         norm_deltas = self._normalize_state_delta(state_deltas)
         inputs = np.concatenate((norm_states, norm_actions), axis=1)
         preds = norm_deltas
-        
-        self.sess.run(self.update_op, feed_dict={self.input_ph: inputs, self.pred_ph: preds})
+        for _ in range(60):
+            self.sess.run(self.update_op, feed_dict={self.input_ph: inputs, self.pred_ph: preds})
 
     def predict(self, states, actions):
 
@@ -73,7 +73,7 @@ class NNDynamicsModel():
         input = np.concatenate((state_inputs, action_inputs), axis=1)
         state_deltas = self.sess.run(self.model, feed_dict={self.input_ph: input})
         state_deltas = self._denormalize_state_delta(state_deltas)
-        return np.sum(states, state_deltas)
+        return states + state_deltas
         # output_states = []
         # for i in range(len(states)):
         #     state_input = self._normalize_state(states[i])
