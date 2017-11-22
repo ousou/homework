@@ -76,7 +76,7 @@ class MPCcontroller(Controller):
                 np.array(trajectory['actions']),
                 np.array(trajectory['next_states'])))
         costs = np.array(costs)
-        lowest_cost_index = np.argmax(costs)
+        lowest_cost_index = np.argmin(costs)
         first_action = trajectories[lowest_cost_index]['actions'][0]
         return first_action
 
