@@ -48,7 +48,7 @@ class NNDynamicsModel():
         self.model = build_mlp(self.input_ph, st_dim, "dyn_model", n_layers, size, activation, output_activation)
         self.pred_ph = tf.placeholder(shape=[None, st_dim], name="prediction", dtype=tf.float32)
         self.eps = 0.000001
-        self.loss = tf.nn.l2_loss(self.pred_ph, self.model)
+        self.loss = tf.reduce_sum(tf.pow(self.pred_ph-self.model, 2))
         self.update_op = tf.train.AdamOptimizer(learning_rate).minimize(self.loss)
 
     def fit(self, data):
