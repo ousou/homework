@@ -177,7 +177,7 @@ def train(env,
     # from the dynamics network. 
     # 
     normalization = compute_normalization(data)
-    print('normalizaCtion', normalization)
+    print('normalization', normalization)
     #
     # if True:
     #     return

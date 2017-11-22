@@ -57,22 +57,21 @@ class NNDynamicsModel():
         """
         states = data['states']
         actions = data['actions']
-        next_states = data['next_states']
-        state_deltas = next_states - states
-        norm_states = map(self._normalize_state, states)
-        norm_actions = map(self._normalize_action, actions)
-        norm_deltas = map(self._normalize_state_delta, state_deltas)
-        inputs = np.concatenate((norm_states, norm_actions), axis=0)
+        state_deltas = data['deltas']
+        norm_states = self._normalize_state(states)
+        norm_actions = self._normalize_action(actions)
+        norm_deltas = self._normalize_state_delta(state_deltas)
+        inputs = np.concatenate((norm_states, norm_actions), axis=1)
         preds = norm_deltas
         
-        self.sess.run(self.update_op, feed_dict={self.input_ph: [inputs], self.pred_ph: [preds]})
+        self.sess.run(self.update_op, feed_dict={self.input_ph: inputs, self.pred_ph: preds})
 
     def predict(self, states, actions):
 
         state_inputs = self._normalize_state(states)
         action_inputs = self._normalize_action(actions)
         input = np.concatenate((state_inputs, action_inputs), axis=1)
-        state_deltas = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
+        state_deltas = self.sess.run(self.model, feed_dict={self.input_ph: input})
         state_deltas = self._denormalize_state_delta(state_deltas)
         return np.sum(states, state_deltas)
         # output_states = []
