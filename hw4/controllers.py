@@ -36,6 +36,28 @@ class MPCcontroller(Controller):
         self.rnd_control = RandomController(env)
 
     def get_action(self, state):
-        """ YOUR CODE HERE """
-        """ Note: be careful to batch your simulations through the model for speed """
+        trajectories = np.empty((3,self.horizon,self.num_simulated_paths))
+        states = np.repeat(state, self.num_simulated_paths)
+        for h in range(self.horizon):
+            actions = []
+            for i in range(self.num_simulated_paths):
+                actions.append(self.rnd_control.get_action(states[i]))
+            actions = np.array(actions)
+            next_states = self.dyn_model.predict(states, actions)
+            trajectories[0, h] = states
+            trajectories[1, h] = actions
+            trajectories[2, h] = next_states
+            states = next_states
+        costs = []
+        for i in range(self.num_simulated_paths):
+            trajectory = trajectories[:,:,i]
+            costs.append(trajectory_cost_fn(
+                self.cost_fn,trajectory[0], trajectory[1], trajectory[2]))
+        costs = np.array(costs)
+        lowest_cost_index = np.argmax(costs)
+        first_action = trajectories[0,0,lowest_cost_index]
+        return first_action
+
+
+
 
