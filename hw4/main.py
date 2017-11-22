@@ -61,18 +61,36 @@ def sample(env,
 def path_cost(cost_fn, path):
     return trajectory_cost_fn(cost_fn, path['states'], path['actions'], path['next_states'])
 
+def extract_from_path_list(pathlist):
+    states = []
+    actions = []
+    next_states = []
+    deltas = []
+
+    for path in pathlist:
+        states.extend(path['states'])
+        actions.extend(path['actions'])
+        next_states.extend(path['next_states'])
+        deltas.extend(path['next_states'] - path['states'])
+
+    return {
+        'states': np.array(states),
+        'actions': np.array(actions),
+        'next_states': np.array(next_states),
+        'deltas': np.array(deltas)
+    }
+
 def compute_normalization(data):
     states = data['states']
     actions = data['actions']
-    next_states = data['next_states']
-    deltas = next_states - states
+    deltas = data['deltas']
 
-    mean_state = np.mean(states)
-    std_state = np.std(states)
-    mean_deltas = np.mean(deltas)
-    std_deltas = np.std(deltas)
-    mean_action = np.mean(actions)
-    std_action = np.std(actions)
+    mean_state = np.mean(states,axis=0)
+    std_state = np.std(states,axis=0)
+    mean_deltas = np.mean(deltas,axis=0)
+    std_deltas = np.std(deltas,axis=0)
+    mean_action = np.mean(actions,axis=0)
+    std_action = np.std(actions,axis=0)
     return mean_state, std_state, mean_deltas, std_deltas, mean_action, std_action
 
 
@@ -145,7 +163,10 @@ def train(env,
     # model.
 
     random_controller = RandomController(env)
-    data = sample(env, random_controller, 1, 10)
+    pathlist = sample(env, random_controller, num_paths_random, env_horizon)
+    data = extract_from_path_list(pathlist)
+    # print('data', data)
+
 
     #========================================================
     # 
@@ -156,7 +177,10 @@ def train(env,
     # from the dynamics network. 
     # 
     normalization = compute_normalization(data)
-
+    print('normalizaCtion', normalization)
+    #
+    # if True:
+    #     return
 
     #========================================================
     # 
