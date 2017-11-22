@@ -42,11 +42,11 @@ class NNDynamicsModel():
         self.learning_rate = learning_rate
         self.iterations = iterations
         self.sess = sess
-        ob_dim = env.observation_space.shape[0]
+        st_dim = env.observation_space.shape[0]
         ac_dim = env.action_space.n if isinstance(env.action_space, gym.spaces.Discrete) else env.action_space.shape[0]
-        self.input_ph = tf.placeholder(shape=[None, ob_dim + ac_dim], name="input", dtype=tf.float32)
-        self.model = build_mlp(self.input_ph, ob_dim, "dyn_model", n_layers, size, activation, output_activation)
-        self.pred_ph = tf.placeholder(shape=[None, ob_dim], name="prediction", dtype=tf.float32)
+        self.input_ph = tf.placeholder(shape=[None, st_dim + ac_dim], name="input", dtype=tf.float32)
+        self.model = build_mlp(self.input_ph, st_dim, "dyn_model", n_layers, size, activation, output_activation)
+        self.pred_ph = tf.placeholder(shape=[None, st_dim], name="prediction", dtype=tf.float32)
         self.eps = 0.000001
         self.loss = tf.nn.l2_loss(self.pred_ph, self.model)
         self.update_op = tf.train.AdamOptimizer(learning_rate).minimize(self.loss)
@@ -68,17 +68,24 @@ class NNDynamicsModel():
         self.sess.run(self.update_op, feed_dict={self.input_ph: [inputs], self.pred_ph: [preds]})
 
     def predict(self, states, actions):
-        output_states = []
-        for i in range(len(states)):
-            state_input = self._normalize_state(states[i])
-            action_input = self._normalize_action(actions[i])
-            # state_input = (states[i] - self.state_mean) / (self.state_std + self.eps)
-            # action_input = (actions[i] - self.act_mean) / (self.act_std + self.eps)
-            input = np.concatenate((state_input, action_input), axis=0)
-            state_delta = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
-            state_delta = self._denormalize_state_delta(state_delta)
-            output_states.append(np.sum(state_delta, states[i]))
-        return np.array(output_states)
+
+        state_inputs = self._normalize_state(states)
+        action_inputs = self._normalize_action(actions)
+        input = np.concatenate((state_inputs, action_inputs), axis=1)
+        state_deltas = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
+        state_deltas = self._denormalize_state_delta(state_deltas)
+        return np.sum(states, state_deltas)
+        # output_states = []
+        # for i in range(len(states)):
+        #     state_input = self._normalize_state(states[i])
+        #     action_input = self._normalize_action(actions[i])
+        #     # state_input = (states[i] - self.state_mean) / (self.state_std + self.eps)
+        #     # action_input = (actions[i] - self.act_mean) / (self.act_std + self.eps)
+        #     input = np.concatenate((state_input, action_input), axis=0)
+        #     state_delta = self.sess.run(self.model, feed_dict={self.input_ph: [input]})
+        #     state_delta = self._denormalize_state_delta(state_delta)
+        #     output_states.append(np.sum(state_delta, states[i]))
+        # return np.array(output_states)
 
     def _denormalize_state_delta(self, delta):
         delta = np.array(delta)
