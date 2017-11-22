@@ -48,8 +48,8 @@ def sample(env,
             if (done or steps >= horizon):
                 break
         current_path = {
-            'observations': np.array(observations),
-            'next_observations': np.array(next_observations),
+            'states': np.array(observations),
+            'next_states': np.array(next_observations),
             'actions': np.array(actions),
             'rewards': np.array(rewards)
         }
@@ -59,7 +59,7 @@ def sample(env,
 
 # Utility to compute cost a path for a given cost function
 def path_cost(cost_fn, path):
-    return trajectory_cost_fn(cost_fn, path['observations'], path['actions'], path['next_observations'])
+    return trajectory_cost_fn(cost_fn, path['states'], path['actions'], path['next_states'])
 
 def compute_normalization(data):
     """
@@ -68,7 +68,7 @@ def compute_normalization(data):
     """
 
     """ YOUR CODE HERE """
-    return mean_obs, std_obs, mean_deltas, std_deltas, mean_action, std_action
+    return mean_state, std_state, mean_deltas, std_deltas, mean_action, std_action
 
 
 def plot_comparison(env, dyn_model):
