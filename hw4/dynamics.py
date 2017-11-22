@@ -46,7 +46,7 @@ class NNDynamicsModel():
         ac_dim = env.action_space.n if isinstance(env.action_space, gym.spaces.Discrete) else env.action_space.shape[0]
         self.input_ph = tf.placeholder(shape=[None, ob_dim + ac_dim], name="input", dtype=tf.float32)
         self.model = build_mlp(self.input_ph, ob_dim, "dyn_model", n_layers, size, activation, output_activation)
-        self.pred_ph = tf.placeholder(shape=[None, ob_dim], name="input", dtype=tf.float32)
+        self.pred_ph = tf.placeholder(shape=[None, ob_dim], name="prediction", dtype=tf.float32)
         self.eps = 0.000001
         self.loss = tf.nn.l2_loss(self.pred_ph, self.model)
         self.update_op = tf.train.AdamOptimizer(learning_rate).minimize(self.loss)
@@ -64,7 +64,7 @@ class NNDynamicsModel():
         norm_deltas = map(self._normalize_state_delta, state_deltas)
         inputs = np.concatenate((norm_states, norm_actions), axis=0)
         preds = norm_deltas
-
+        
         self.sess.run(self.update_op, feed_dict={self.input_ph: [inputs], self.pred_ph: [preds]})
 
     def predict(self, states, actions):
