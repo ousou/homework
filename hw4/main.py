@@ -41,8 +41,8 @@ def sample(env,
             next_obs, reward, done, info = env.step(action)
             if verbose:
                 print('info:', info)
-                next_observations.append(next_obs)
-                rewards.append(reward)
+            next_observations.append(next_obs)
+            rewards.append(reward)
             steps += 1
             obs = next_obs
             if (done or steps >= horizon):
@@ -145,9 +145,7 @@ def train(env,
     # model.
 
     random_controller = RandomController(env)
-
-    """ YOUR CODE HERE """
-
+    data = sample(env, random_controller, 1, 10)
 
     #========================================================
     # 
@@ -157,7 +155,7 @@ def train(env,
     # for normalizing inputs and denormalizing outputs
     # from the dynamics network. 
     # 
-    normalization = """ YOUR CODE HERE """
+    normalization = compute_normalization(data)
 
 
     #========================================================
@@ -197,6 +195,7 @@ def train(env,
     # Note: You don't need to use a mixing ratio in this assignment for new and old data as described in https://arxiv.org/abs/1708.02596
     # 
     for itr in range(onpol_iters):
+        dyn_model.fit(data)
         """ YOUR CODE HERE """
 
 
