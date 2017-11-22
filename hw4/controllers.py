@@ -36,26 +36,48 @@ class MPCcontroller(Controller):
         self.rnd_control = RandomController(env)
 
     def get_action(self, state):
-        trajectories = np.empty((3,self.horizon,self.num_simulated_paths))
-        states = np.repeat(state, self.num_simulated_paths)
+        timesteps = []
+        states = np.tile(state, (self.num_simulated_paths,1))
         for h in range(self.horizon):
             actions = []
             for i in range(self.num_simulated_paths):
                 actions.append(self.rnd_control.get_action(states[i]))
             actions = np.array(actions)
             next_states = self.dyn_model.predict(states, actions)
-            trajectories[0, h] = states
-            trajectories[1, h] = actions
-            trajectories[2, h] = next_states
-            states = next_states
+            timestep = {
+                'states': states,
+                'actions': actions,
+                'next_states': next_states
+            }
+            timesteps.append(timestep)
+
+        trajectories = []
+
+        for _ in range(self.num_simulated_paths):
+            trajectories.append({
+                'states': [],
+                'actions': [],
+                'next_states': []
+            })
+
+        for t in range(len(timesteps)):
+            timestep = timesteps[t]
+            for tr in range(len(trajectories)):
+                trajectory = trajectories[tr]
+                trajectory['states'].append(timestep['states'][tr])
+                trajectory['actions'].append(timestep['actions'][tr])
+                trajectory['next_states'].append(timestep['next_states'][tr])
+
         costs = []
-        for i in range(self.num_simulated_paths):
-            trajectory = trajectories[:,:,i]
+        for trajectory in trajectories:
             costs.append(trajectory_cost_fn(
-                self.cost_fn,trajectory[0], trajectory[1], trajectory[2]))
+                self.cost_fn,
+                np.array(trajectory['states']),
+                np.array(trajectory['actions']),
+                np.array(trajectory['next_states'])))
         costs = np.array(costs)
         lowest_cost_index = np.argmax(costs)
-        first_action = trajectories[0,0,lowest_cost_index]
+        first_action = trajectories[lowest_cost_index]['actions'][0]
         return first_action
 
 
