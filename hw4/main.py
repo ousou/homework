@@ -62,12 +62,17 @@ def path_cost(cost_fn, path):
     return trajectory_cost_fn(cost_fn, path['states'], path['actions'], path['next_states'])
 
 def compute_normalization(data):
-    """
-    Write a function to take in a dataset and compute the means, and stds.
-    Return 6 elements: mean of s_t, std of s_t, mean of (s_t+1 - s_t), std of (s_t+1 - s_t), mean of actions, std of actions
-    """
+    states = data['states']
+    actions = data['actions']
+    next_states = data['next_states']
+    deltas = next_states - states
 
-    """ YOUR CODE HERE """
+    mean_state = np.mean(states)
+    std_state = np.std(states)
+    mean_deltas = np.mean(deltas)
+    std_deltas = np.std(deltas)
+    mean_action = np.mean(actions)
+    std_action = np.std(actions)
     return mean_state, std_state, mean_deltas, std_deltas, mean_action, std_action
 
 
@@ -258,6 +263,8 @@ def main():
     env = gym.make(args.env_name)
     cost_fn = cheetah_cost_fn
     env.reset()
+    print('ob dim',env.observation_space.shape[0])
+    print('ac dim',env.action_space.shape[0])
     # env.render()
     # done = False
     # while not done:
