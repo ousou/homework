@@ -3,38 +3,39 @@ from cost_functions import trajectory_cost_fn
 import time
 
 class Controller():
-	def __init__(self):
-		pass
+    def __init__(self):
+        pass
 
-	# Get the appropriate action(s) for this state(s)
-	def get_action(self, state):
-		pass
+    # Get the appropriate action(s) for this state(s)
+    def get_action(self, state):
+        pass
 
 
 class RandomController(Controller):
-	def __init__(self, env):
-		self.env = env
+    def __init__(self, env):
+        self.env = env
 
-	def get_action(self, state):
-		""" YOUR CODE HERE """
-		return self.env.action_space.sample()
+    def get_action(self, state):
+        """ YOUR CODE HERE """
+        return self.env.action_space.sample()
 
 class MPCcontroller(Controller):
-	""" Controller built using the MPC method outlined in https://arxiv.org/abs/1708.02596 """
-	def __init__(self, 
-				 env, 
-				 dyn_model, 
-				 horizon=5, 
-				 cost_fn=None, 
-				 num_simulated_paths=10,
-				 ):
-		self.env = env
-		self.dyn_model = dyn_model
-		self.horizon = horizon
-		self.cost_fn = cost_fn
-		self.num_simulated_paths = num_simulated_paths
+    """ Controller built using the MPC method outlined in https://arxiv.org/abs/1708.02596 """
+    def __init__(self,
+                 env,
+                 dyn_model,
+                 horizon=5,
+                 cost_fn=None,
+                 num_simulated_paths=10,
+                 ):
+        self.env = env
+        self.dyn_model = dyn_model
+        self.horizon = horizon
+        self.cost_fn = cost_fn
+        self.num_simulated_paths = num_simulated_paths
+        self.rnd_control = RandomController(env)
 
-	def get_action(self, state):
-		""" YOUR CODE HERE """
-		""" Note: be careful to batch your simulations through the model for speed """
+    def get_action(self, state):
+        """ YOUR CODE HERE """
+        """ Note: be careful to batch your simulations through the model for speed """
 
