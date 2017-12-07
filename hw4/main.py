@@ -47,6 +47,7 @@ def sample(env,
             steps += 1
             obs = next_obs
             if (done or steps >= horizon):
+                print('done at step', steps)
                 break
         current_path = {
             'states': np.array(observations),
@@ -81,13 +82,13 @@ def extract_from_path_list(pathlist):
         'deltas': np.array(deltas)
     }
 
-def calculate_costs_and_rewards_from_path_list(pathlist, cost_fn):
+def calculate_costs_and_returns_from_path_list(pathlist, cost_fn):
     costs = []
-    rewards = []
+    returns = []
     for path in pathlist:
-        rewards.extend(path['rewards'])
+        returns.append(np.sum(path['rewards']))
         costs.append(path_cost(cost_fn, path))
-    return np.array(costs), np.array(rewards)
+    return np.array(costs), np.array(returns)
 
 def compute_normalization(data):
     states = data['states']
@@ -172,7 +173,7 @@ def train(env,
     # model.
 
     random_controller = RandomController(env)
-    pathlist = sample(env, random_controller, num_paths_random, env_horizon)
+    pathlist = sample(env, random_controller, num_paths=num_paths_random, horizon=env_horizon)
     data = extract_from_path_list(pathlist)
     print('random data size: ',len(data['states']))
 
@@ -186,7 +187,7 @@ def train(env,
     # from the dynamics network. 
     # 
     normalization = compute_normalization(data)
-    # print('normalization', normalization)
+    print('normalization', normalization)
     #
     # if True:
     #     return
@@ -231,9 +232,9 @@ def train(env,
     for itr in range(onpol_iters):
         dyn_model.fit(data)
         print('data fit done for itr', itr)
-        new_pathlist = sample(env, mpc_controller, num_paths_onpol, env_horizon)
+        new_pathlist = sample(env, mpc_controller, num_paths=num_paths_onpol, horizon=env_horizon)
         pathlist.extend(new_pathlist)
-        costs, returns = calculate_costs_and_rewards_from_path_list(new_pathlist, cost_fn)
+        costs, returns = calculate_costs_and_returns_from_path_list(new_pathlist, cost_fn)
         data = extract_from_path_list(pathlist)
         print('data size: ', len(data['states']))
         # print('action', action)
